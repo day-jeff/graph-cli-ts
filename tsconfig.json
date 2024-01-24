@@ -16,9 +16,12 @@
   },
   "importHelpers": true,
   "noImplicitAny": true,
-  "moduleResolution": "node",
+  "moduleResolution": "node16",
   "resolveJsonModule": true,
-  "types": [
-    "node"
+  "type": "module",
+  "module": "commonjs",
+  "skipLibCheck": true,
+  "lib": [
+    "esNext"
   ]
 }

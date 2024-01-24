@@ -1,7 +1,7 @@
-import * as Msal from '@azure/msal-node';
+import * as msal from '@azure/msal-node';
 
 const axios = require('axios').default;
-import {graphMeEndpoint} from './authConfig.js';
+import {graphMeEndpoint} from './authConfig';
 
 export async function callMicrosoftGraph(accessToken: string) {
   console.log('Calling Microsoft Graph');
