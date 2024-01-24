@@ -1,33 +1,73 @@
-console.log('Try npm run lint/fix! Hi Mike');
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+import * as Msal from '@azure/msal-node';
+import {authConfig} from './authConfig';
+import {callMicrosoftGraph} from './graph';
 
-const longString =
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ut aliquet diam.';
+const open = require('open');
 
-const trailing = 'Semicolon';
+// Before running the sample, you will need to replace the values in src/authConfig.js
 
-const why = {am: 'I tabbed?'};
+// Open browser to sign user in and consent to scopes needed for application
+const openBrowser = async (url: string) => {
+  // You can open a browser window with any library or method you wish to use - the 'open' npm package is used here for demonstration purposes.
+  open(url);
+};
 
-const iWish = "I didn't have a trailing space...";
+const loginRequest = {
+  scopes: ['User.Read'],
+  openBrowser,
+  successTemplate: 'Successfully signed in! You can close this window now.',
+};
 
-const sicilian = true;
+// Create msal application object
+const pcApp = new Msal.PublicClientApplication(authConfig);
 
-const vizzini = sicilian ? !sicilian : sicilian;
+const acquireToken = async () => {
+  const msalTokenCache = pcApp.getTokenCache();
+  const accounts = await msalTokenCache.getAllAccounts();
+  if (accounts.length === 1) {
+    const silentRequest = {
+      account: accounts[0],
+      scopes: ['User.Read'],
+    };
 
-const re = /foo {3}bar/;
-
-export function doSomeStuff(
-  withThis: string,
-  andThat: string,
-  andThose: string[]
-) {
-  //function on one line
-  if (!andThose.length) {
-    return false;
+    return pcApp.acquireTokenSilent(silentRequest).catch((e: Error) => {
+      if (e instanceof Msal.InteractionRequiredAuthError) {
+        return pcApp.acquireTokenInteractive(loginRequest);
+      }
+      throw e;
+    });
+  } else if (accounts.length > 1) {
+    accounts.forEach(account => {
+      console.log(account.username);
+    });
+    return Promise.reject(
+      'Multiple accounts found. Please select an account to use.'
+    );
+  } else {
+    return pcApp.acquireTokenInteractive(loginRequest);
   }
-  console.log(withThis);
-  console.log(andThat);
-  console.dir(andThose);
-  console.log(longString, trailing, why, iWish, vizzini, re);
-  return;
-}
-// TODO: more examples
+};
+
+acquireToken()
+  .then(response => {
+    if (response) {
+      return callMicrosoftGraph(response.accessToken)
+        .then((graphResponse: Msal.AuthenticationResult) => {
+          console.log(graphResponse);
+        })
+        .catch((e: Error) => {
+          console.error(e);
+          throw e;
+        });
+    } else {
+      throw new Error('Response is undefined.');
+    }
+  })
+  .catch(e => {
+    console.error(e);
+    throw e;
+  });
