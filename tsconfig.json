@@ -16,10 +16,8 @@
   },
   "importHelpers": true,
   "noImplicitAny": true,
-  "moduleResolution": "node16",
+  "moduleResolution": "nodenext",
   "resolveJsonModule": true,
-  "type": "module",
-  "module": "commonjs",
   "skipLibCheck": true,
   "lib": [
     "esNext"
