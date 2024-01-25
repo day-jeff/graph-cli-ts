@@ -1,9 +1,9 @@
-import * as msal from '@azure/msal-node';
-
 const axios = require('axios').default;
-import {graphMeEndpoint} from './config';
 
-export async function callMicrosoftGraph(accessToken: string) {
+export async function callMicrosoftGraph(
+  accessToken: string,
+  graphUri: string
+) {
   console.log('Calling Microsoft Graph');
   const options = {
     headers: {
@@ -12,7 +12,7 @@ export async function callMicrosoftGraph(accessToken: string) {
   };
 
   try {
-    const response = await axios.get(graphMeEndpoint, options);
+    const response = await axios.get(graphUri, options);
     return response.data;
   } catch (error) {
     console.log(error);

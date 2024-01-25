@@ -23,8 +23,11 @@
   "devDependencies": {
     "@azure/msal-node": "^2.6.2",
     "@azure/msal-node-extensions": "^1.0.10",
+    "@types/figlet": "^1.5.8",
     "@types/node": "^20.11.5",
     "axios": "^1.6.5",
+    "commander": "^11.1.0",
+    "figlet": "^1.7.0",
     "gts": "^5.2.0",
     "open": "^10.0.3",
     "typescript": "~5.3.3"

@@ -11,79 +11,89 @@ import {auth} from './config';
 
 let pca: msal.PublicClientApplication;
 
-async function getPCA() {
-  const userRootDirectory = Environment.getUserRootDirectory();
-  const cachePath = userRootDirectory
-    ? path.join(userRootDirectory, './cache.json')
-    : '';
+export class msalClient {
+  private static pca: msal.PublicClientApplication;
+  private static tokenCache: msal.TokenCache;
+  private static accounts: msal.AccountInfo[];
 
-  const persistenceConfiguration = {
-    cachePath,
-    dataProtectionScope: DataProtectionScope.CurrentUser,
-    usePlaintextFileOnLinux: false,
-  };
-
-  const persistence = await PersistenceCreator.createPersistence(
-    persistenceConfiguration
-  );
-
-  const publicClientConfig = {
-    auth,
-    cache: {
-      cachePlugin: new PersistenceCachePlugin(persistence),
-    },
-  };
-
-  return new msal.PublicClientApplication(publicClientConfig);
-}
-
-export async function authenticate(
-  scopes: string[]
-): Promise<msal.AuthenticationResult> {
-  if (!pca) {
-    pca = await getPCA();
+  constructor() {
+    msalClient.initialize();
   }
 
-  const msalTokenCache = pca.getTokenCache();
-  const accounts = await msalTokenCache.getAllAccounts();
+  static async initialize() {
+    msalClient.pca = await msalClient.getPCA();
+    msalClient.tokenCache = msalClient.pca.getTokenCache();
+    msalClient.accounts = await msalClient.tokenCache.getAllAccounts();
+    console.log(msalClient.accounts.length + ' accounts found');
+  }
 
-  const openBrowser = async (url: string) => {
-    // tsc transpiles import() to require(), despite various tsconfig.json settings I've tried.
-    // runtime eval to force use of import() solves the problem.
-    const {default: open} = await eval("import('open')");
+  static async getPCA() {
+    const userRootDirectory = Environment.getUserRootDirectory();
+    const cachePath = userRootDirectory
+      ? path.join(userRootDirectory, './cache.json')
+      : '';
 
-    if (open) {
-      await open(url);
-    } else {
-      throw new Error('Failed to import open module');
-    }
-  };
-
-  const loginRequest = {
-    scopes: scopes,
-    openBrowser,
-    successTemplate: 'Successfully signed in! You can close this window now.',
-  };
-
-  if (accounts.length === 1) {
-    const silentRequest = {
-      account: accounts[0],
-      scopes: scopes,
+    const persistenceConfiguration = {
+      cachePath,
+      dataProtectionScope: DataProtectionScope.CurrentUser,
+      usePlaintextFileOnLinux: false,
     };
-    return pca.acquireTokenSilent(silentRequest).catch((e: Error) => {
-      if (e instanceof msal.InteractionRequiredAuthError) {
-        return pca.acquireTokenInteractive(loginRequest);
-      }
-      throw e;
-    });
-  } else if (accounts.length > 1) {
-    accounts.forEach((account: AccountInfo) => {
-      console.log(account.username);
-    });
-    return Promise.reject(
-      'Multiple accounts found. Please select an account to use.'
+
+    const persistence = await PersistenceCreator.createPersistence(
+      persistenceConfiguration
     );
-  } else {
-    return pca.acquireTokenInteractive(loginRequest);
+
+    const publicClientConfig = {
+      auth,
+      cache: {
+        cachePlugin: new PersistenceCachePlugin(persistence),
+      },
+    };
+
+    return new msal.PublicClientApplication(publicClientConfig);
+  }
+
+  static async authenticate(
+    scopes: string[]
+  ): Promise<msal.AuthenticationResult> {
+    const openBrowser = async (url: string) => {
+      // tsc transpiles import() to require(), despite various tsconfig.json settings I've tried.
+      // runtime eval to force use of import() solves the problem.
+      const {default: open} = await eval("import('open')");
+
+      if (open) {
+        await open(url);
+      } else {
+        throw new Error('Failed to import open module');
+      }
+    };
+
+    const loginRequest = {
+      scopes: scopes,
+      openBrowser,
+      successTemplate: 'Successfully signed in! You can close this window now.',
+    };
+
+    if (msalClient.accounts.length === 1) {
+      const silentRequest = {
+        account: msalClient.accounts[0],
+        scopes: scopes,
+      };
+      return msalClient.pca.acquireTokenSilent(silentRequest).catch((e: Error) => {
+        if (e instanceof msal.InteractionRequiredAuthError) {
+          return msalClient.pca.acquireTokenInteractive(loginRequest);
+        }
+        throw e;
+      });
+    } else if (msalClient.accounts.length > 1) {
+      msalClient.accounts.forEach((account: AccountInfo) => {
+        console.log(account.username);
+      });
+      return Promise.reject(
+        'Multiple accounts found. Please select an account to use.'
+      );
+    } else {
+      return pca.acquireTokenInteractive(loginRequest);
+    }
   }
 }

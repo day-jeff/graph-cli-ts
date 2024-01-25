@@ -3,5 +3,3 @@ export const auth = {
   authority:
     'https://login.microsoftonline.com/f446b955-3842-4a00-8668-645bad7daad3',
 };
-
-export const graphMeEndpoint = 'https://graph.microsoft.com/v1.0/me';
