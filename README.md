@@ -1,18 +1,24 @@
-# TypeScript starter project
+# Microsoft Graph CLI (written in TypeScript)
 
-Empty template for creating a new TypeScript app with the following dependencies configured:
+```dotnetcli
+   ____                 _        ____ _     ___ 
+  / ___|_ __ __ _ _ __ | |__    / ___| |   |_ _|
+ | |  _| '__/ _` | '_ \| '_ \  | |   | |    | |
+ | |_| | | | (_| | |_) | | | | | |___| |___ | |
+  \____|_|  \__,_| .__/|_| |_|  \____|_____|___|
+                 |_|
+Usage: graph-console-ts [options]
 
-- [Google TypeScript Style](https://github.com/google/gts)
-- [Chalk 4*](https://github.com/chalk/chalk/releases/tag/v5.0.0)
-- [Commander](https://www.npmjs.com/package/commander)
-- Unit tests:
-  - [Mocha](https://www.npmjs.com/package/mocha) (with TypeScript type definitions)
-  - [Chai 4.3.10*](https://www.npmjs.com/package/chai) (with TypeScript type definitions)
-- A simple dev container
-- Initial VS Code debugging config
- 
-\* Using earlier version to avoid conflicts with CommonJS and ES Module syntax.
+A CLI for querying the Microsoft Graph
 
-Aside from configuring the basic dependencies, the
+Options:
+  -V, --version  output the version number
+  -m, --me       View my profile
+  -u, --users    View all users
+  -h, --help     display help for command
+```
 
-Special thanks to [Mike Hopcroft](https://github.com/MikeHopcroft) who has done the legwork to define this as a simple starter approach for writing TypeScript apps. I'm simply capturing his teaching in this template so I have reusable starting point.
+## Getting started
+
+1. `npm-install`
+2. `node .`
