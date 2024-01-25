@@ -1,8 +1,6 @@
-import {callMicrosoftGraph} from './graph';
 import {msalClient} from './msalClient';
 import figlet from 'figlet';
 import {Command, Option, OptionValues} from 'commander';
-import {get} from 'http';
 
 async function main() {
   console.log(figlet.textSync('Graph CLI'));
@@ -12,22 +10,25 @@ async function main() {
   await msalClient.initialize();
   const result = await msalClient.authenticate(['user.read']);
 
-  let graphUri = '';
   if (result) {
+    let graphUri = '';
     if (options.me) {
       graphUri = 'https://graph.microsoft.com/v1.0/me';
+      callMicrosoftGraph(result.accessToken, graphUri);
     }
     if (options.users) {
       graphUri = 'https://graph.microsoft.com/v1.0/users';
+      callMicrosoftGraph(result.accessToken, graphUri);
     }
-
-    const graphResponse = await callMicrosoftGraph(
-      result.accessToken,
-      graphUri
-    );
-
-    console.log(graphResponse);
+    if (options.logout) {
+      msalClient.logout();
+    }
   }
+}
+
+async function callMicrosoftGraph(accessToken: string, graphUri: string) {
+  const graphResponse = await callMicrosoftGraph(accessToken, graphUri);
+  console.log(graphResponse);
 }
 
 function getOptions(): OptionValues {
@@ -38,6 +39,7 @@ function getOptions(): OptionValues {
     .description('A CLI for querying the Microsoft Graph')
     .addOption(new Option('-m, --me', 'View my profile').conflicts('users'))
     .addOption(new Option('-u, --users', 'View all users').conflicts('me'))
+    .addOption(new Option('-o, --logout', 'Logout'))
     .parse(process.argv);
 
   const NO_COMMAND_SPECIFIED = process.argv.length < 3;

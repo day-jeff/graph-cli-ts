@@ -8,9 +8,6 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
             "program": "${workspaceFolder}\\build\\src\\index.js",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [

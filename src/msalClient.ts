@@ -79,12 +79,14 @@ export class msalClient {
         account: msalClient.accounts[0],
         scopes: scopes,
       };
-      return msalClient.pca.acquireTokenSilent(silentRequest).catch((e: Error) => {
-        if (e instanceof msal.InteractionRequiredAuthError) {
-          return msalClient.pca.acquireTokenInteractive(loginRequest);
-        }
-        throw e;
-      });
+      return msalClient.pca
+        .acquireTokenSilent(silentRequest)
+        .catch((e: Error) => {
+          if (e instanceof msal.InteractionRequiredAuthError) {
+            return msalClient.pca.acquireTokenInteractive(loginRequest);
+          }
+          throw e;
+        });
     } else if (msalClient.accounts.length > 1) {
       msalClient.accounts.forEach((account: AccountInfo) => {
         console.log(account.username);
@@ -93,7 +95,19 @@ export class msalClient {
         'Multiple accounts found. Please select an account to use.'
       );
     } else {
-      return pca.acquireTokenInteractive(loginRequest);
+      return msalClient.pca.acquireTokenInteractive(loginRequest);
+    }
+  }
+
+  static async logout() {
+    msalClient.accounts = await msalClient.tokenCache.getAllAccounts();
+    if (msalClient.accounts.length > 0) {
+      msalClient.accounts.forEach(async (account: AccountInfo) => {
+        await msalClient.pca.getTokenCache().removeAccount(account);
+      });
+      console.log('Successfully signed out');
+    } else {
+      console.log('No accounts found');
     }
   }
 }

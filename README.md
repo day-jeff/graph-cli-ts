@@ -1,6 +1,6 @@
 # Microsoft Graph CLI (written in TypeScript)
 
-```dotnetcli
+```text
    ____                 _        ____ _     ___ 
   / ___|_ __ __ _ _ __ | |__    / ___| |   |_ _|
  | |  _| '__/ _` | '_ \| '_ \  | |   | |    | |
