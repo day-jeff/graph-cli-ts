@@ -34,7 +34,9 @@ export class msalClient {
       : '';
 
     const persistenceConfiguration = {
-      cachePath,
+      cachePath: cachePath,
+      serviceName: "Microsoft Graph",
+      accountName: "Graph CLI user",
       dataProtectionScope: DataProtectionScope.CurrentUser,
       usePlaintextFileOnLinux: false,
     };

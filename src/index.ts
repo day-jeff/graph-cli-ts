@@ -1,6 +1,8 @@
-import {msalClient} from './msalClient';
 import figlet from 'figlet';
 import {Command, Option, OptionValues} from 'commander';
+
+import {msalClient} from './msalClient';
+import {callMicrosoftGraph} from './graph';
 
 async function main() {
   console.log(figlet.textSync('Graph CLI'));
@@ -14,11 +16,11 @@ async function main() {
     let graphUri = '';
     if (options.me) {
       graphUri = 'https://graph.microsoft.com/v1.0/me';
-      callMicrosoftGraph(result.accessToken, graphUri);
+      callGraph(result.accessToken, graphUri);
     }
     if (options.users) {
       graphUri = 'https://graph.microsoft.com/v1.0/users';
-      callMicrosoftGraph(result.accessToken, graphUri);
+      callGraph(result.accessToken, graphUri);
     }
     if (options.logout) {
       msalClient.logout();
@@ -26,7 +28,7 @@ async function main() {
   }
 }
 
-async function callMicrosoftGraph(accessToken: string, graphUri: string) {
+async function callGraph(accessToken: string, graphUri: string) {
   const graphResponse = await callMicrosoftGraph(accessToken, graphUri);
   console.log(graphResponse);
 }
