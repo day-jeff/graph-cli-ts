@@ -1,115 +1,122 @@
 import * as msal from '@azure/msal-node';
-import {AccountInfo} from '@azure/msal-node';
-import {
-  DataProtectionScope,
-  Environment,
-  PersistenceCreator,
-  PersistenceCachePlugin,
-} from '@azure/msal-node-extensions';
+import * as msalextensions from '@azure/msal-node-extensions';
 import path from 'path';
+
 import {auth} from './config';
+import {open} from 'fs';
+
+const openBrowser = async (url: string) => {
+  // tsc transpiles import() to require(), despite various tsconfig.json settings I've tried.
+  // runtime eval to force use of import() solves the problem.
+  const {default: open} = await eval("import('open')");
+
+  if (open) {
+    await open(url);
+  } else {
+    throw new Error('Failed to import open module');
+  }
+};
 
 let pca: msal.PublicClientApplication;
+let tokenCache: msal.TokenCache;
+let accounts: msal.AccountInfo[];
 
-export class msalClient {
-  private static pca: msal.PublicClientApplication;
-  private static tokenCache: msal.TokenCache;
-  private static accounts: msal.AccountInfo[];
+export async function Initialize() {
+  pca = await getPCA();
+  tokenCache = pca.getTokenCache();
+  accounts = await tokenCache.getAllAccounts();
+  console.log(accounts.length + ' accounts found');
+}
 
-  constructor() {
-    msalClient.initialize();
-  }
+async function getPCA() {
+  const userRootDirectory = msalextensions.Environment.getUserRootDirectory();
+  const cachePath = userRootDirectory
+    ? path.join(userRootDirectory, './cache.json')
+    : '';
 
-  static async initialize() {
-    msalClient.pca = await msalClient.getPCA();
-    msalClient.tokenCache = msalClient.pca.getTokenCache();
-    msalClient.accounts = await msalClient.tokenCache.getAllAccounts();
-    console.log(msalClient.accounts.length + ' accounts found');
-  }
+  const persistenceConfiguration = {
+    cachePath: cachePath,
+    serviceName: 'Microsoft Graph',
+    accountName: 'Graph CLI user',
+    dataProtectionScope: msalextensions.DataProtectionScope.CurrentUser,
+    usePlaintextFileOnLinux: false,
+  };
 
-  static async getPCA() {
-    const userRootDirectory = Environment.getUserRootDirectory();
-    const cachePath = userRootDirectory
-      ? path.join(userRootDirectory, './cache.json')
-      : '';
+  const persistence = await msalextensions.PersistenceCreator.createPersistence(
+    persistenceConfiguration
+  );
 
-    const persistenceConfiguration = {
-      cachePath: cachePath,
-      serviceName: "Microsoft Graph",
-      accountName: "Graph CLI user",
-      dataProtectionScope: DataProtectionScope.CurrentUser,
-      usePlaintextFileOnLinux: false,
-    };
+  const publicClientConfig = {
+    auth,
+    cache: {
+      cachePlugin: new msalextensions.PersistenceCachePlugin(persistence),
+    },
+  };
 
-    const persistence = await PersistenceCreator.createPersistence(
-      persistenceConfiguration
-    );
+  return new msal.PublicClientApplication(publicClientConfig);
+}
 
-    const publicClientConfig = {
-      auth,
-      cache: {
-        cachePlugin: new PersistenceCachePlugin(persistence),
-      },
-    };
+export async function Authenticate(
+  scopes: string[]
+): Promise<msal.AuthenticationResult> {
+  const openBrowser = async (url: string) => {
+    // tsc transpiles import() to require(), despite various tsconfig.json settings I've tried.
+    // runtime eval to force use of import() solves the problem.
+    const {default: open} = await eval("import('open')");
 
-    return new msal.PublicClientApplication(publicClientConfig);
-  }
+    if (open) {
+      await open(url);
+    } else {
+      throw new Error('Failed to import open module');
+    }
+  };
 
-  static async authenticate(
-    scopes: string[]
-  ): Promise<msal.AuthenticationResult> {
-    const openBrowser = async (url: string) => {
-      // tsc transpiles import() to require(), despite various tsconfig.json settings I've tried.
-      // runtime eval to force use of import() solves the problem.
-      const {default: open} = await eval("import('open')");
+  const loginRequest = {
+    scopes: scopes,
+    openBrowser,
+    successTemplate: 'Successfully signed in! You can close this window now.',
+  };
 
-      if (open) {
-        await open(url);
-      } else {
-        throw new Error('Failed to import open module');
-      }
-    };
-
-    const loginRequest = {
+  if (accounts.length === 1) {
+    const silentRequest = {
+      account: accounts[0],
       scopes: scopes,
-      openBrowser,
-      successTemplate: 'Successfully signed in! You can close this window now.',
     };
+    return pca.acquireTokenSilent(silentRequest).catch(async (e: Error) => {
+      if (e instanceof msal.InteractionRequiredAuthError) {
+        return pca.acquireTokenInteractive(loginRequest);
+      }
+      throw e;
+    });
+  } else if (accounts.length > 1) {
+    accounts.forEach((account: msal.AccountInfo) => {
+      console.log(account.username);
+    });
+    return Promise.reject(
+      'Multiple accounts found. Please select an account to use.'
+    );
+  } else {
+    return pca.acquireTokenInteractive(loginRequest);
+  }
+}
 
-    if (msalClient.accounts.length === 1) {
-      const silentRequest = {
-        account: msalClient.accounts[0],
-        scopes: scopes,
-      };
-      return msalClient.pca
-        .acquireTokenSilent(silentRequest)
-        .catch((e: Error) => {
-          if (e instanceof msal.InteractionRequiredAuthError) {
-            return msalClient.pca.acquireTokenInteractive(loginRequest);
-          }
-          throw e;
-        });
-    } else if (msalClient.accounts.length > 1) {
-      msalClient.accounts.forEach((account: AccountInfo) => {
-        console.log(account.username);
-      });
-      return Promise.reject(
-        'Multiple accounts found. Please select an account to use.'
-      );
-    } else {
-      return msalClient.pca.acquireTokenInteractive(loginRequest);
-    }
+export async function Logout() {
+  // The following code deletes credentials cached on the machine, but it doesn't clear browser cookies.
+  // This means that if you sign in again, you probably won't be prompted for credentials.
+  // This is problematic if you want to sign in with a different account.
+  accounts = await tokenCache.getAllAccounts();
+  if (accounts.length > 0) {
+    accounts.forEach(async (account: msal.AccountInfo) => {
+      await pca.getTokenCache().removeAccount(account);
+    });
+    console.log('Successfully signed out');
+  } else {
+    console.log('No accounts found');
   }
 
-  static async logout() {
-    msalClient.accounts = await msalClient.tokenCache.getAllAccounts();
-    if (msalClient.accounts.length > 0) {
-      msalClient.accounts.forEach(async (account: AccountInfo) => {
-        await msalClient.pca.getTokenCache().removeAccount(account);
-      });
-      console.log('Successfully signed out');
-    } else {
-      console.log('No accounts found');
-    }
-  }
+  // This is the "v1" sign out URL. It's not officially endorsed to use this URL, but it works.
+  // The v2 URL prompts the user to choose which account they want to sign out of, which is clunky.
+  // @azure/msal-node doesn't have a built-in way to sign out, so this is the best option for now.
+  const logoutUri = 'https://login.microsoftonline.com/common/oauth2/logout';
+  openBrowser(logoutUri);
 }

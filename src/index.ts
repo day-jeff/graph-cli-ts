@@ -1,7 +1,7 @@
 import figlet from 'figlet';
 import {Command, Option, OptionValues} from 'commander';
 
-import {msalClient} from './msalClient';
+import * as msal from './msalClient';
 import {callMicrosoftGraph} from './graph';
 
 async function main() {
@@ -9,8 +9,8 @@ async function main() {
 
   const options = getOptions();
 
-  await msalClient.initialize();
-  const result = await msalClient.authenticate(['user.read']);
+  await msal.Initialize();
+  const result = await msal.Authenticate(['user.read']);
 
   if (result) {
     let graphUri = '';
@@ -23,7 +23,7 @@ async function main() {
       callGraph(result.accessToken, graphUri);
     }
     if (options.logout) {
-      msalClient.logout();
+      msal.Logout();
     }
   }
 }
