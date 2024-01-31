@@ -38,7 +38,7 @@ async function getPCA() {
     serviceName: 'Microsoft Graph',
     accountName: 'Graph CLI user',
     dataProtectionScope: msalextensions.DataProtectionScope.CurrentUser,
-    usePlaintextFileOnLinux: false,
+    usePlaintextFileOnLinux: true,
   };
 
   const persistence = await msalextensions.PersistenceCreator.createPersistence(

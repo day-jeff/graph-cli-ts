@@ -7,7 +7,13 @@
   "features": {
     "ghcr.io/devcontainers/features/azure-cli:1": {},
     "ghcr.io/devcontainers/features/node:1": {},
-    "ghcr.io/devcontainers-contrib/features/typescript:2": {}
+    "ghcr.io/devcontainers-contrib/features/typescript:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "desktop-lite": {
+      "password": "vscode",
+      "webPort": "6080",
+      "vncPort": "5901"
+    }
   },
   "privileged": true,
   "customizations": {
@@ -32,7 +38,7 @@
   "remoteEnv": {
     "DOCKER_BUILDKIT": "0"
   },
-  "runArgs": ["--volume=/tmp/.X11-unix:/tmp/.X11-unix"],
+  "runArgs": ["--volume=/tmp/.X11-unix:/tmp/.X11-unix", "--privileged"],
   "postCreateCommand": "./.devcontainer/postCreate.sh",
-  "postAttachCommand": "export $(dbus-launch)"
+  "postStartCommand": "export $(dbus-launch)"
 }
