@@ -1,0 +1,39 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+{
+  "name": "Node.js & TypeScript",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "image": "debian:bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers-contrib/features/typescript:2": {}
+  },
+  "privileged": true,
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash"
+          }
+        }
+      },
+      "extensions": [
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  // "containerEnv": {
+  //   "DISPLAY": "${localEnv:DISPLAY}"
+  // },
+  // "remoteEnv": {
+  //   "DOCKER_BUILDKIT": "0"
+  // },
+  // "runArgs": [
+  //   "--volume=/tmp/.X11-unix:/tmp/.X11-unix",
+  //   "--privileged"
+  // ],
+  "postCreateCommand": "apt update && apt install gnome-keyring -y && apt install dbus-x11",
+  "postAttachCommand": "export $(dbus-launch)"
+}

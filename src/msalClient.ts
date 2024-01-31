@@ -3,7 +3,6 @@ import * as msalextensions from '@azure/msal-node-extensions';
 import path from 'path';
 
 import {auth} from './config';
-import {open} from 'fs';
 
 const openBrowser = async (url: string) => {
   // tsc transpiles import() to require(), despite various tsconfig.json settings I've tried.
@@ -59,6 +58,32 @@ async function getPCA() {
 export async function Authenticate(
   scopes: string[]
 ): Promise<msal.AuthenticationResult> {
+  if (accounts.length === 1) {
+    const silentRequest = {
+      account: accounts[0],
+      scopes: scopes,
+    };
+    return pca.acquireTokenSilent(silentRequest).catch(async (e: Error) => {
+      if (e instanceof msal.InteractionRequiredAuthError) {
+        return GetAccessToken(scopes);
+      }
+      throw e;
+    });
+  } else if (accounts.length > 1) {
+    accounts.forEach((account: msal.AccountInfo) => {
+      console.log(account.username);
+    });
+    return Promise.reject(
+      'Multiple accounts found. Please select an account to use.'
+    );
+  } else {
+    return GetAccessToken(scopes);
+  }
+}
+
+async function GetAccessToken(
+  scopes: string[]
+): Promise<msal.AuthenticationResult> {
   const openBrowser = async (url: string) => {
     // tsc transpiles import() to require(), despite various tsconfig.json settings I've tried.
     // runtime eval to force use of import() solves the problem.
@@ -71,32 +96,21 @@ export async function Authenticate(
     }
   };
 
-  const loginRequest = {
+  const deviceCodeRequest = {
+    deviceCodeCallback: (response: any) => console.log(response.message),
     scopes: scopes,
-    openBrowser,
-    successTemplate: 'Successfully signed in! You can close this window now.',
   };
 
-  if (accounts.length === 1) {
-    const silentRequest = {
+  if (process.env.CODESPACES) {
+    const result = await pca.acquireTokenByDeviceCode(deviceCodeRequest);
+    return result as msal.AuthenticationResult;
+  } else {
+    return await pca.acquireTokenInteractive({
       account: accounts[0],
       scopes: scopes,
-    };
-    return pca.acquireTokenSilent(silentRequest).catch(async (e: Error) => {
-      if (e instanceof msal.InteractionRequiredAuthError) {
-        return pca.acquireTokenInteractive(loginRequest);
-      }
-      throw e;
+      openBrowser,
+      successTemplate: 'Successfully signed in! You can close this window now.',
     });
-  } else if (accounts.length > 1) {
-    accounts.forEach((account: msal.AccountInfo) => {
-      console.log(account.username);
-    });
-    return Promise.reject(
-      'Multiple accounts found. Please select an account to use.'
-    );
-  } else {
-    return pca.acquireTokenInteractive(loginRequest);
   }
 }
 
