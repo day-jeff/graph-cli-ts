@@ -37,8 +37,5 @@
   },
   "remoteEnv": {
     "DOCKER_BUILDKIT": "0"
-  },
-  "runArgs": ["--volume=/tmp/.X11-unix:/tmp/.X11-unix", "--privileged"],
-  "postCreateCommand": "./.devcontainer/postCreate.sh",
-  "postStartCommand": "export $(dbus-launch)"
+  }
 }
