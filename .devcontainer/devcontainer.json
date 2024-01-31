@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-  "name": "Node.js & TypeScript",
+  "name": "Debian with Node.js & TypeScript",
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
   "image": "debian:bullseye",
   "features": {
@@ -20,20 +20,19 @@
         }
       },
       "extensions": [
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "GitHub.codespaces",
+        "ms-vscode-remote.remote-containers"
       ]
     }
   },
-  // "containerEnv": {
-  //   "DISPLAY": "${localEnv:DISPLAY}"
-  // },
-  // "remoteEnv": {
-  //   "DOCKER_BUILDKIT": "0"
-  // },
-  // "runArgs": [
-  //   "--volume=/tmp/.X11-unix:/tmp/.X11-unix",
-  //   "--privileged"
-  // ],
-  "postCreateCommand": "apt update && apt install gnome-keyring -y && apt install dbus-x11",
+  "containerEnv": {
+    "DISPLAY": "${localEnv:DISPLAY}"
+  },
+  "remoteEnv": {
+    "DOCKER_BUILDKIT": "0"
+  },
+  "runArgs": ["--volume=/tmp/.X11-unix:/tmp/.X11-unix"],
+  "postCreateCommand": "./.devcontainer/postCreate.sh",
   "postAttachCommand": "export $(dbus-launch)"
 }
