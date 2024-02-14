@@ -5,15 +5,8 @@
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
   "image": "debian:bullseye",
   "features": {
-    "ghcr.io/devcontainers/features/azure-cli:1": {},
     "ghcr.io/devcontainers/features/node:1": {},
-    "ghcr.io/devcontainers-contrib/features/typescript:2": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "desktop-lite": {
-      "password": "vscode",
-      "webPort": "6080",
-      "vncPort": "5901"
-    }
+    "ghcr.io/devcontainers-contrib/features/typescript:2": {}
   },
   "privileged": true,
   "customizations": {
@@ -32,10 +25,5 @@
       ]
     }
   },
-  "containerEnv": {
-    "DISPLAY": "${localEnv:DISPLAY}"
-  },
-  "remoteEnv": {
-    "DOCKER_BUILDKIT": "0"
-  }
+  "postCreateCommand": ".devcontainer/configure-keyring.sh && npm i"
 }
