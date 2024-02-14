@@ -1,4 +1,4 @@
-const axios = require('axios').default;
+import axios from 'axios';
 
 export async function callMicrosoftGraph(
   accessToken: string,
@@ -11,11 +11,6 @@ export async function callMicrosoftGraph(
     },
   };
 
-  try {
-    const response = await axios.get(graphUri, options);
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return error;
-  }
+  const response = await axios.get(graphUri, options);
+  return response.data;
 }

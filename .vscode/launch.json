@@ -13,7 +13,7 @@
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
             ],
-            "args": ["-m"]
+            "args": ["-u", "mhop@canal24.onmicrosoft.com"]
         }
     ]
 }
