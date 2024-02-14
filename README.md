@@ -12,13 +12,18 @@ Usage: graph-console-ts [options]
 A CLI for querying the Microsoft Graph
 
 Options:
-  -V, --version  output the version number
-  -m, --me       View my profile
-  -u, --users    View all users
-  -h, --help     display help for command
+  -h, --help          Display help 
+  -a, --all-users     View all users
+  -m, --me            View my profile
+  -u, --user <email>  View info for specified email
+  -V, --version       Output the version number
 ```
 
 ## Getting started
 
-1. `npm-install`
-2. `node .`
+Enter `node .` to run the CLI and view help.
+
+Suggested commands to get started:
+
+`node . -m`
+`node . -u <your email>`
