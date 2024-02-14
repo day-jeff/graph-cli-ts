@@ -12,11 +12,13 @@ Usage: graph-console-ts [options]
 A CLI for querying the Microsoft Graph
 
 Options:
-  -h, --help          Display help 
+  -V, --version       output the version number
   -a, --all-users     View all users
+  -f, --files         View my files
   -m, --me            View my profile
-  -u, --user <email>  View info for specified email
-  -V, --version       Output the version number
+  -o, --logout        Logout
+  -u, --user <email>  Look up user by email
+  -h, --help          display help for command
 ```
 
 ## Getting started
